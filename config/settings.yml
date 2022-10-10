@@ -32,12 +32,12 @@ ip-from-header: "_env:YESOD_IP_FROM_HEADER:false"
 # See https://github.com/yesodweb/yesod/wiki/Configuration#parsing-numeric-values-as-strings
 
 database:
-  user:     "_env:YESOD_PGUSER:nix-demo"
-  password: "_env:YESOD_PGPASS:nix-demo"
+  user:     "_env:YESOD_PGUSER:nixdemo"
+  password: "_env:YESOD_PGPASS:nixdemo"
   host:     "_env:YESOD_PGHOST:localhost"
   port:     "_env:YESOD_PGPORT:5432"
   # See config/test-settings.yml for an override during tests
-  database: "_env:YESOD_PGDATABASE:nix-demo"
+  database: "_env:YESOD_PGDATABASE:nixdemo"
   poolsize: "_env:YESOD_PGPOOLSIZE:10"
 
 copyright: Insert copyright statement here

@@ -1,33 +1,53 @@
 {
-  # This is a template created by `hix init`
   inputs.haskellNix.url = "github:input-output-hk/haskell.nix";
   inputs.nixpkgs.follows = "haskellNix/nixpkgs-unstable";
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  outputs = { self, nixpkgs, flake-utils, haskellNix }:
+  inputs.nixops.url = "github:input-output-hk/nixops-flake";
+  inputs.flake-compat = {
+    url = "github:edolstra/flake-compat";
+    flake = false;
+  };
+  outputs = { self, nixpkgs, flake-utils, haskellNix, flake-compat, nixops }:
     let
-      supportedSystems = [
-        "x86_64-linux"
-        "x86_64-darwin"
-        "aarch64-linux"
-        "aarch64-darwin"
-      ];
-    in
-      flake-utils.lib.eachSystem supportedSystems (system:
-      let
-        overlays = [ haskellNix.overlay
-          (final: prev: {
-            hixProject =
-              final.haskell-nix.hix.project {
+      overlays = [ haskellNix.overlay
+        (final: prev: {
+          nix-demo =
+            final.haskell-nix.project {
+              projectFileName = "stack.yaml";
+              src = final.haskell-nix.haskellLib.cleanGit {
+                name = "nix-demo-src";
                 src = ./.;
-                evalSystem = "x86_64-linux";
               };
-          })
-        ];
-        pkgs = import nixpkgs { inherit system overlays; inherit (haskellNix) config; };
-        flake = pkgs.hixProject.flake {};
-      in flake // {
-        legacyPackages = pkgs;
-      });
+              shell.buildInputs = with pkgs; [
+                stack
+                nixpkgs-fmt
+                postgresql
+                # nixops.packages.${system}.default
+                # nixops_unstable
+              ];
+              shell.additional = hsPkgs: with hsPkgs; [ Cabal ];
+              shell.nativeBuildInputs = [ nixops.defaultPackage.x86_64-linux ];
+              # shell.nativeBuildInputs = [ final.nixops_unstable ];
+            };
+          configuration-files = pkgs.runCommand "staticFilesAanalyzer" { src = ./.; } ''
+             mkdir -p $out/config
+             mkdir -p $out/static
+             cp -R $src/config $out/
+             cp -R $src/static $out/
+           '';
+        })
+      ];
+      pkgs = import nixpkgs { system = "x86_64-linux"; inherit overlays; inherit (haskellNix) config; };
+      flake = pkgs.nix-demo.flake {};
+    in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system: flake // {
+      packages = flake.packages // {
+        default = flake.packages."nix-demo:exe:nix-demo";
+        configuration-files = pkgs.configuration-files;
+      };
+      apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
+      legacyPackages = pkgs;
+      nixopsConfigurations.default = import ./nix-demo-configuration.nix { inherit nixpkgs pkgs; };
+    }) // { nixopsConfigurations.default = import ./nix-demo-configuration.nix { inherit pkgs nixpkgs; }; };
 
   # --- Flake Local Nix Configuration ----------------------------
   nixConfig = {
