@@ -21,6 +21,12 @@
     # Pin our nixpkgs flake to the one used to build the system
     generateRegistryFromInputs = true;
   };
+  nix.settings.substituters = [ "https://cache.iog.io"
+                                "https://iog.cachix.org"
+                              ];
+
+  nix.settings.trusted-public-keys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
+                                     ];
 
   # Set the system revision to the flake revision
   # You can query this value with: $ nix-info -m
