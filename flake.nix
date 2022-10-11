@@ -75,14 +75,15 @@
           };
         };
       };
-    in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system: flake // {
-      packages = flake.packages // {
-        default = flake.packages."nix-demo:exe:nix-demo";
-        configuration-files = pkgs.configuration-files;
-      };
-      apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
-      legacyPackages = pkgs;
-    }) // flake-deploy-rs;
+    # in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system: flake // {
+    #   packages = flake.packages // {
+    #     default = flake.packages."nix-demo:exe:nix-demo";
+    #     configuration-files = pkgs.configuration-files;
+    #   };
+    #   apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
+    #   legacyPackages = pkgs;
+    # }) // flake-deploy-rs;
+    in flake-deploy-rs;
 
   # --- Flake Local Nix Configuration ----------------------------
   nixConfig = {
