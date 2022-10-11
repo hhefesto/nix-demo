@@ -1,8 +1,8 @@
-{ nixpkgs, pkgs }:
+# { nixpkgs, pkgs }:
 {
-  inherit nixpkgs;
+  # inherit nixpkgs;
   network.description = "something";
-  server0 = { ... }: {
+  server0 = { pkgs, ... }: {
     # imports = [
     #   {
     #     nix.nixPath = [ "nixpkgs=${nixpkgs}" ];
@@ -27,12 +27,12 @@
       rootDiskSize = 40;
     } ;
 
-    # nixpkgs.overlays = [
-    #   (final: prev: {
-    #     nix-demo = (import ./. {}).packages.x86_64-linux.default;
-    #     configuration-files = (import ./. {}).packages.x86_64-linux.configuration-files;
-    #   })
-    # ];
+    nixpkgs.overlays = [
+      (final: prev: {
+        nix-demo = (import ./. {}).packages.x86_64-linux.default;
+        configuration-files = (import ./. {}).packages.x86_64-linux.configuration-files;
+      })
+    ];
 
     networking.firewall.allowedTCPPorts = [ 22 80 5432 587 443 ];
 
