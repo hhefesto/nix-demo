@@ -16,31 +16,41 @@
       nixosModules = flake-utils-plus.lib.exportModules (
         nixpkgs.lib.mapAttrsToList (name: value: ./nixosModules/${name}) (builtins.readDir ./nixosModules)
       );
-      # overlays = [ haskellNix.overlay
-      #   (final: prev: {
-      #     nix-demo =
-      #       final.haskell-nix.project {
-      #         projectFileName = "stack.yaml";
-      #         src = builtins.path { name = "nix-demo-src"; path = ./.;};
-      #         shell.buildInputs = with pkgs; [
-      #           stack
-      #           nixpkgs-fmt
-      #           postgresql
-      #           nixUnstable
-      #           inputs.deploy-rs.defaultPackage.x86_64-linux
-      #         ];
-      #         shell.additional = hsPkgs: with hsPkgs; [ Cabal ];
-      #       };
-      #   })
-      # ];
-      # pkgs = import nixpkgs { system = "x86_64-linux"; inherit overlays; inherit (haskellNix) config; };
-      # flake = pkgs.nix-demo.flake {};
+      overlays = [ haskellNix.overlay
+        (final: prev: {
+          nix-demo =
+            final.haskell-nix.project {
+              projectFileName = "stack.yaml";
+              src = builtins.path { name = "nix-demo-src"; path = ./.;};
+              shell.buildInputs = with pkgs; [
+                stack
+                nixpkgs-fmt
+                postgresql
+                nixUnstable
+                inputs.deploy-rs.defaultPackage.x86_64-linux
+              ];
+              shell.additional = hsPkgs: with hsPkgs; [ Cabal ];
+            };
+          nix-demo-wrapper = pkgs.writeShellApplication {
+            name = "nix-demo-wrapped";
+            runtimeInputs = [ self.packages.x86_64-linux.default ];
+            text = ''
+             cd /home/admin
+             [ ! -d "/home/admin/nix-demo" ] && git clone https://github.com/hhefesto/nix-demo
+             cd nix-demo
+             ${self.packages.x86_64-linux.default}/bin/nix-demo
+            '';
+          };
+        })
+      ];
+      pkgs = import nixpkgs { system = "x86_64-linux"; inherit overlays; inherit (haskellNix) config; };
+      flake = pkgs.nix-demo.flake {};
       flake-deploy-rs = flake-utils-plus.lib.mkFlake {
         inherit self inputs nixosModules;
 
         hosts = {
           hetzner.modules = with nixosModules; [
-            # nix-demo
+            nix-demo
             common
             admin
             hardware-hetzner
@@ -63,14 +73,15 @@
         };
       };
 
-    # in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system: flake // {
-    #   packages = flake.packages // {
-    #     default = flake.packages."nix-demo:exe:nix-demo";
-    #   };
-    #   apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
-    #   legacyPackages = pkgs;
-    # }) // flake-deploy-rs;
-    in flake-deploy-rs;
+    in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system: flake // {
+      packages = flake.packages // {
+        nix-demo-wrapper = pkgs.nix-demo-wrapper;
+        default = flake.packages."nix-demo:exe:nix-demo";
+      };
+      apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
+      legacyPackages = pkgs;
+    }) // flake-deploy-rs;
+    # in flake-deploy-rs;
 
   # --- Flake Local Nix Configuration ----------------------------
   nixConfig = {
