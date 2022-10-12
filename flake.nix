@@ -9,7 +9,7 @@
         overlays = [ haskellNix.overlay
           (final: prev: {
             nix-demo =
-              final.haskell-nix.project {
+              final.haskell-nix.stackProject' {
                 src = ./.;
                 shell.buildInputs = with pkgs; [
                   stack
@@ -24,6 +24,10 @@
         pkgs = import nixpkgs { inherit system overlays; inherit (haskellNix) config; };
         flake = pkgs.nix-demo.flake {};
       in flake // {
+        packages = flake.packages // {
+          default = flake.packages."nix-demo:exe:nix-demo";
+        };
+        apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
         legacyPackages = pkgs;
       });
 
