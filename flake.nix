@@ -9,8 +9,9 @@
         overlays = [ haskellNix.overlay
           (final: prev: {
             nix-demo =
-              final.haskell-nix.stackProject' {
-                src = ./.;
+              final.haskell-nix.project {
+                projectFileName = "stack.yaml";
+                src = builtins.path { name = "nix-demo-src"; path = ./.;};
                 shell.buildInputs = with pkgs; [
                   stack
                   nixpkgs-fmt
