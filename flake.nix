@@ -17,24 +17,24 @@
       nixosModules = flake-utils-plus.lib.exportModules (
         nixpkgs.lib.mapAttrsToList (name: value: ./nixosModules/${name}) (builtins.readDir ./nixosModules)
       );
-      overlays = [ haskellNix.overlay
-        (final: prev: {
-          nix-demo =
-            final.haskell-nix.project {
-              projectFileName = "stack.yaml";
-              src = builtins.path { name = "nix-demo-src"; path = ./.;};
-              shell.buildInputs = with pkgs; [
-                stack
-                nixpkgs-fmt
-                postgresql
-                nixUnstable
-              ];
-              shell.additional = hsPkgs: with hsPkgs; [ Cabal ];
-            };
-        })
-      ];
-      pkgs = import nixpkgs { system = "x86_64-linux"; inherit overlays; inherit (haskellNix) config; };
-      flake = pkgs.nix-demo.flake {};
+      # overlays = [ haskellNix.overlay
+      #   (final: prev: {
+      #     nix-demo =
+      #       final.haskell-nix.project {
+      #         projectFileName = "stack.yaml";
+      #         src = builtins.path { name = "nix-demo-src"; path = ./.;};
+      #         shell.buildInputs = with pkgs; [
+      #           stack
+      #           nixpkgs-fmt
+      #           postgresql
+      #           nixUnstable
+      #         ];
+      #         shell.additional = hsPkgs: with hsPkgs; [ Cabal ];
+      #       };
+      #   })
+      # ];
+      # pkgs = import nixpkgs { system = "x86_64-linux"; inherit overlays; inherit (haskellNix) config; };
+      # flake = pkgs.nix-demo.flake {};
       flake-deploy-rs = flake-utils-plus.lib.mkFlake {
         inherit self inputs nixosModules;
 
@@ -49,7 +49,7 @@
 
         deploy.nodes = {
           my-node = {
-            hostname = "95.217.180.164";
+            hostname = "65.21.177.245";
             fastConnection = false;
             profiles = {
               my-profile = {
