@@ -1,5 +1,4 @@
 {
-  # This is a template created by `hix init`
   inputs.haskellNix.url = "github:input-output-hk/haskell.nix";
   inputs.nixpkgs.follows = "haskellNix/nixpkgs-unstable";
   inputs.flake-utils.url = "github:numtide/flake-utils";
@@ -17,24 +16,25 @@
       nixosModules = flake-utils-plus.lib.exportModules (
         nixpkgs.lib.mapAttrsToList (name: value: ./nixosModules/${name}) (builtins.readDir ./nixosModules)
       );
-      # overlays = [ haskellNix.overlay
-      #   (final: prev: {
-      #     nix-demo =
-      #       final.haskell-nix.project {
-      #         projectFileName = "stack.yaml";
-      #         src = builtins.path { name = "nix-demo-src"; path = ./.;};
-      #         shell.buildInputs = with pkgs; [
-      #           stack
-      #           nixpkgs-fmt
-      #           postgresql
-      #           nixUnstable
-      #         ];
-      #         shell.additional = hsPkgs: with hsPkgs; [ Cabal ];
-      #       };
-      #   })
-      # ];
-      # pkgs = import nixpkgs { system = "x86_64-linux"; inherit overlays; inherit (haskellNix) config; };
-      # flake = pkgs.nix-demo.flake {};
+      overlays = [ haskellNix.overlay
+        (final: prev: {
+          nix-demo =
+            final.haskell-nix.project {
+              projectFileName = "stack.yaml";
+              src = builtins.path { name = "nix-demo-src"; path = ./.;};
+              shell.buildInputs = with pkgs; [
+                stack
+                nixpkgs-fmt
+                postgresql
+                nixUnstable
+                inputs.deploy-rs.defaultPackage.x86_64-linux
+              ];
+              shell.additional = hsPkgs: with hsPkgs; [ Cabal ];
+            };
+        })
+      ];
+      pkgs = import nixpkgs { system = "x86_64-linux"; inherit overlays; inherit (haskellNix) config; };
+      flake = pkgs.nix-demo.flake {};
       flake-deploy-rs = flake-utils-plus.lib.mkFlake {
         inherit self inputs nixosModules;
 
@@ -63,14 +63,14 @@
         };
       };
 
-    # in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system: flake // {
-    #   packages = flake.packages // {
-    #     default = flake.packages."nix-demo:exe:nix-demo";
-    #   };
-    #   apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
-    #   legacyPackages = pkgs;
-    # }) // flake-deploy-rs;
-    in flake-deploy-rs;
+    in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system: flake // {
+      packages = flake.packages // {
+        default = flake.packages."nix-demo:exe:nix-demo";
+      };
+      apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
+      legacyPackages = pkgs;
+    }) // flake-deploy-rs;
+    # in flake-deploy-rs;
 
   # --- Flake Local Nix Configuration ----------------------------
   nixConfig = {
