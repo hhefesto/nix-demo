@@ -1,5 +1,4 @@
 {-# LANGUAGE EmptyDataDecls             #-}
-{-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
