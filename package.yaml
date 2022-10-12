@@ -76,6 +76,17 @@ executables:
     - condition: flag(library-only)
       buildable: false
 
+# Test suite
+tests:
+  nix-demo-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options: -Wall
+    dependencies:
+    - nix-demo
+    - hspec >=2.0.0
+    - yesod-test
+
 # Define flags used by "yesod devel" to make compilation faster
 flags:
   library-only:
