@@ -2,17 +2,16 @@
   inputs.haskellNix.url = "github:input-output-hk/haskell.nix";
   inputs.nixpkgs.follows = "haskellNix/nixpkgs-unstable";
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.nixops.url = "github:input-output-hk/nixops-flake";
-  inputs.flake-utils-plus.url = github:gytis-ivaskevicius/flake-utils-plus;
+  inputs.flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus";
   inputs.deploy-rs = {
-    url = github:serokell/deploy-rs;
+    url = "github:serokell/deploy-rs";
     inputs.nixpkgs.follows = "nixpkgs";
   };
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
     flake = false;
   };
-  outputs = inputs@{ self, nixpkgs, flake-utils, haskellNix, flake-compat, nixops, deploy-rs, flake-utils-plus }:
+  outputs = inputs@{ self, nixpkgs, flake-utils, haskellNix, flake-compat, deploy-rs, flake-utils-plus }:
     let
       nixosModules = flake-utils-plus.lib.exportModules (
         nixpkgs.lib.mapAttrsToList (name: value: ./nixosModules/${name}) (builtins.readDir ./nixosModules)
@@ -32,19 +31,19 @@
                 postgresql
                 nixUnstable
                 inputs.deploy-rs.defaultPackage.x86_64-linux
-                # nixops.packages.${system}.default
-                # nixops_unstable
               ];
               shell.additional = hsPkgs: with hsPkgs; [ Cabal ];
-              shell.nativeBuildInputs = [ nixops.defaultPackage.x86_64-linux ];
-              # shell.nativeBuildInputs = [ final.nixops_unstable ];
             };
-          configuration-files = pkgs.runCommand "staticFilesAanalyzer" { src = ./.; } ''
-             mkdir -p $out/config
-             mkdir -p $out/static
-             cp -R $src/config $out/
-             cp -R $src/static $out/
-           '';
+          nix-demo-wrapper = pkgs.writeShellApplication {
+            name = "nix-demo-wrapped";
+            runtimeInputs = [ self.packages.x86_64-linux.default ];
+            text = ''
+             cd /home/admin
+             [ ! -d "/home/admin/nix-demo" ] && git clone https://github.com/hhefesto/nix-demo
+             cd nix-demo
+             ${self.packages.x86_64-linux.default}/bin/nix-demo
+            '';
+          };
         })
       ];
       pkgs = import nixpkgs { system = "x86_64-linux"; inherit overlays; inherit (haskellNix) config; };
@@ -54,6 +53,7 @@
 
         hosts = {
           hetzner.modules = with nixosModules; [
+            nix-demo
             common
             admin
             hardware-hetzner
@@ -62,7 +62,7 @@
 
         deploy.nodes = {
           my-node = {
-            hostname = "nix-demo.hhefesto.com";
+            hostname = "95.217.180.164";
             fastConnection = false;
             profiles = {
               my-profile = {
@@ -75,15 +75,14 @@
           };
         };
       };
-    # in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system: flake // {
-    #   packages = flake.packages // {
-    #     default = flake.packages."nix-demo:exe:nix-demo";
-    #     configuration-files = pkgs.configuration-files;
-    #   };
-    #   apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
-    #   legacyPackages = pkgs;
-    # }) // flake-deploy-rs;
-    in flake-deploy-rs;
+    in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system: flake // {
+      packages = flake.packages // {
+        default = flake.packages."nix-demo:exe:nix-demo";
+        nix-demo-wrapper = pkgs.nix-demo-wrapper;
+      };
+      apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
+      legacyPackages = pkgs;
+    }) // flake-deploy-rs;
 
   # --- Flake Local Nix Configuration ----------------------------
   nixConfig = {

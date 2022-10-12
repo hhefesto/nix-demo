@@ -3,7 +3,7 @@
 {
   time.timeZone = "UTC";
   services.openssh = { enable = true; };
-  system.stateVersion = "21.11";
+  system.stateVersion = "22.11";
 
   nix = {
     # Currently needed for flake support, might not be needed in the future
