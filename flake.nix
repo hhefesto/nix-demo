@@ -27,6 +27,16 @@
       #         ];
       #         shell.additional = hsPkgs: with hsPkgs; [ Cabal ];
       #       };
+          # nix-demo-wrapper = pkgs.writeShellApplication {
+          #   name = "nix-demo-wrapped";
+          #   runtimeInputs = [ self.packages.x86_64-linux.default ];
+          #   text = ''
+          #    cd /home/admin
+          #    [ ! -d "/home/admin/nix-demo" ] && git clone https://github.com/hhefesto/nix-demo
+          #    cd nix-demo
+          #    ${self.packages.x86_64-linux.default}/bin/nix-demo
+          #   '';
+          # };
       #   })
       # ];
       # pkgs = import nixpkgs { system = "x86_64-linux"; inherit overlays; inherit (haskellNix) config; };
@@ -36,7 +46,7 @@
 
         hosts = {
           hetzner.modules = with nixosModules; [
-            nix-demo
+            # nix-demo
             common
             admin
             hardware-hetzner
