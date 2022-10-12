@@ -40,7 +40,7 @@
 
         hosts = {
           hetzner.modules = with nixosModules; [
-            nix-demo
+            # nix-demo
             common
             admin
             hardware-hetzner
