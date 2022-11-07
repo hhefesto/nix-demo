@@ -23,20 +23,20 @@
       #           nixpkgs-fmt
       #           postgresql
       #           nixUnstable
-      #           # inputs.deploy-rs.defaultPackage.x86_64-linux
+      #           inputs.deploy-rs.defaultPackage.x86_64-linux
       #         ];
       #         shell.additional = hsPkgs: with hsPkgs; [ Cabal ];
       #       };
-          # nix-demo-wrapper = pkgs.writeShellApplication {
-          #   name = "nix-demo-wrapped";
-          #   runtimeInputs = [ self.packages.x86_64-linux.default ];
-          #   text = ''
-          #    cd /home/admin
-          #    [ ! -d "/home/admin/nix-demo" ] && git clone https://github.com/hhefesto/nix-demo
-          #    cd nix-demo
-          #    ${self.packages.x86_64-linux.default}/bin/nix-demo
-          #   '';
-          # };
+      #     nix-demo-wrapper = pkgs.writeShellApplication {
+      #       name = "nix-demo-wrapped";
+      #       runtimeInputs = [ self.packages.x86_64-linux.default ];
+      #       text = ''
+      #        cd /home/admin
+      #        [ ! -d "/home/admin/nix-demo" ] && git clone https://github.com/hhefesto/nix-demo
+      #        cd nix-demo
+      #        ${self.packages.x86_64-linux.default}/bin/nix-demo
+      #       '';
+      #     };
       #   })
       # ];
       # pkgs = import nixpkgs { system = "x86_64-linux"; inherit overlays; inherit (haskellNix) config; };
@@ -72,6 +72,7 @@
     # in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system: flake // {
     #     packages = flake.packages // {
     #       default = flake.packages."nix-demo:exe:nix-demo";
+    #       nix-demo-wrapper = pkgs.nix-demo-wrapper;
     #     };
     #     apps = flake.apps // { default = flake.apps."nix-demo:exe:nix-demo"; };
 
