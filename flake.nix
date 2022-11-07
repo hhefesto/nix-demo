@@ -55,7 +55,7 @@
 
         deploy.nodes = {
           my-node = {
-            hostname = "135.181.45.205";
+            hostname = "65.108.147.207";
             fastConnection = false;
             profiles = {
               my-profile = {
